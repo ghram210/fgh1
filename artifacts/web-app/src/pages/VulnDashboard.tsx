@@ -17,7 +17,7 @@ const VulnDashboard = () => {
     queryKey: ["kpi-mttr"],
     queryFn: async () => {
       const { data } = await supabase.from("dash_kpi_mttr" as any).select("*").single();
-      return data;
+      return data as any;
     },
   });
 
@@ -25,7 +25,7 @@ const VulnDashboard = () => {
     queryKey: ["kpi-weaponized"],
     queryFn: async () => {
       const { data } = await supabase.from("dash_kpi_weaponized" as any).select("*").single();
-      return data;
+      return data as any;
     },
   });
 
@@ -33,7 +33,7 @@ const VulnDashboard = () => {
     queryKey: ["kpi-compliance"],
     queryFn: async () => {
       const { data } = await supabase.from("dash_kpi_compliance" as any).select("*").single();
-      return data;
+      return data as any;
     },
   });
 
@@ -41,7 +41,7 @@ const VulnDashboard = () => {
     queryKey: ["kpi-risk-total"],
     queryFn: async () => {
       const { data } = await supabase.from("dash_kpi_risk_total" as any).select("*").single();
-      return data;
+      return data as any;
     },
   });
 
@@ -96,16 +96,16 @@ const VulnDashboard = () => {
   const { data: remOpen } = useQuery({
     queryKey: ["remediation-open"],
     queryFn: async () => {
-      const { data } = await supabase.from("remediation_open").select("*").order("sort_order");
-      return data || [];
+      const { data } = await supabase.from("remediation_open" as any).select("*").order("sort_order");
+      return (data as any[]) || [];
     },
   });
 
   const { data: remClosed } = useQuery({
     queryKey: ["remediation-closed"],
     queryFn: async () => {
-      const { data } = await supabase.from("remediation_closed").select("*").order("sort_order");
-      return data || [];
+      const { data } = await supabase.from("remediation_closed" as any).select("*").order("sort_order");
+      return (data as any[]) || [];
     },
   });
 
