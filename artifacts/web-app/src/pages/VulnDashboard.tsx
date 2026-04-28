@@ -13,6 +13,38 @@ const VulnDashboard = () => {
   const [showRatingDrop, setShowRatingDrop] = useState(false);
   const [showStatusDrop, setShowStatusDrop] = useState(false);
 
+  const { data: kpiMttr } = useQuery({
+    queryKey: ["kpi-mttr"],
+    queryFn: async () => {
+      const { data } = await supabase.from("dash_kpi_mttr" as any).select("*").single();
+      return data as any;
+    },
+  });
+
+  const { data: kpiWeaponized } = useQuery({
+    queryKey: ["kpi-weaponized"],
+    queryFn: async () => {
+      const { data } = await supabase.from("dash_kpi_weaponized" as any).select("*").single();
+      return data as any;
+    },
+  });
+
+  const { data: kpiCompliance } = useQuery({
+    queryKey: ["kpi-compliance"],
+    queryFn: async () => {
+      const { data } = await supabase.from("dash_kpi_compliance" as any).select("*").single();
+      return data as any;
+    },
+  });
+
+  const { data: kpiRiskTotal } = useQuery({
+    queryKey: ["kpi-risk-total"],
+    queryFn: async () => {
+      const { data } = await supabase.from("dash_kpi_risk_total" as any).select("*").single();
+      return data as any;
+    },
+  });
+
   const { data: ratings } = useQuery({
     queryKey: ["vuln-ratings"],
     queryFn: async () => {
@@ -64,16 +96,16 @@ const VulnDashboard = () => {
   const { data: remOpen } = useQuery({
     queryKey: ["remediation-open"],
     queryFn: async () => {
-      const { data } = await supabase.from("remediation_open").select("*").order("sort_order");
-      return data || [];
+      const { data } = await supabase.from("remediation_open" as any).select("*").order("sort_order");
+      return (data as any[]) || [];
     },
   });
 
   const { data: remClosed } = useQuery({
     queryKey: ["remediation-closed"],
     queryFn: async () => {
-      const { data } = await supabase.from("remediation_closed").select("*").order("sort_order");
-      return data || [];
+      const { data } = await supabase.from("remediation_closed" as any).select("*").order("sort_order");
+      return (data as any[]) || [];
     },
   });
 
@@ -176,22 +208,31 @@ const VulnDashboard = () => {
             <span className="ml-auto text-sm text-muted-foreground">{totalResults} results</span>
           </div>
 
-          {/* Rating Overview */}
-          <h3 className="text-base font-semibold mb-3">Vulnerability Rating Overview</h3>
+          {/* Dashboard KPIs */}
+          <h3 className="text-base font-semibold mb-3">Executive Security Metrics</h3>
           <div className="grid grid-cols-4 gap-4 mb-8">
-            {filteredRatings.map((r) => (
-              <div key={r.id} className="bg-card border border-border rounded-xl p-4">
+            {[kpiMttr, kpiWeaponized, kpiCompliance, kpiRiskTotal].map((kpi, idx) => (
+              <div key={idx} className="bg-card border border-border rounded-xl p-4">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium" style={{ color: r.color }}>{r.label}</span>
-                  <span className="text-xs text-muted-foreground">{r.percentage}%</span>
+                  <span className="text-sm font-medium text-muted-foreground">{kpi?.label || "Loading..."}</span>
+                  <span className="text-xs text-muted-foreground">{kpi?.unit}</span>
                 </div>
-                <p className="text-3xl font-bold mb-3" style={{ color: r.color }}>{r.value}</p>
+                <p className="text-3xl font-bold mb-3" style={{ color: kpi?.color }}>
+                  {kpi?.value ?? 0}
+                </p>
                 <div className="h-1 rounded-full bg-muted">
-                  <div className="h-1 rounded-full" style={{ width: `${r.percentage}%`, backgroundColor: r.color }} />
+                  <div
+                    className="h-1 rounded-full"
+                    style={{
+                      width: kpi?.label === 'Compliance' ? `${kpi?.value}%` : '100%',
+                      backgroundColor: kpi?.color
+                    }}
+                  />
                 </div>
               </div>
             ))}
           </div>
+
 
           {/* Status Overview */}
           <h3 className="text-base font-semibold mb-3">Vulnerability Status Overview</h3>
