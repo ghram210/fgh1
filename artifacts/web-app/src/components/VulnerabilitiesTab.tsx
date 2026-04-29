@@ -19,13 +19,13 @@ const filterTags = [
 
 type SeverityKey = "Critical" | "High" | "Medium" | "Low" | "Info" | "None";
 
-const severityStyles: Record<SeverityKey, { dot: string; text: string }> = {
-  Critical: { dot: "bg-severity-critical", text: "text-severity-critical" },
-  High: { dot: "bg-severity-high", text: "text-severity-high" },
-  Medium: { dot: "bg-severity-medium", text: "text-severity-medium" },
-  Low: { dot: "bg-severity-low", text: "text-severity-low" },
-  Info: { dot: "bg-severity-info", text: "text-severity-info" },
-  None: { dot: "bg-severity-none", text: "text-severity-none" },
+const severityStyles: Record<SeverityKey, { dot: string; text: string; hex: string }> = {
+  Critical: { dot: "bg-severity-critical", text: "text-severity-critical", hex: "hsl(0 84% 60%)" },
+  High: { dot: "bg-severity-high", text: "text-severity-high", hex: "hsl(24 95% 53%)" },
+  Medium: { dot: "bg-severity-medium", text: "text-severity-medium", hex: "hsl(45 93% 47%)" },
+  Low: { dot: "bg-severity-low", text: "text-severity-low", hex: "hsl(142 71% 45%)" },
+  Info: { dot: "bg-severity-info", text: "text-severity-info", hex: "hsl(215 20% 65%)" },
+  None: { dot: "bg-severity-none", text: "text-severity-none", hex: "hsl(215 15% 75%)" },
 };
 
 const fallbackStyle = { dot: "bg-muted-foreground", text: "text-muted-foreground" };
@@ -56,10 +56,11 @@ const exploitStyles: Record<string, { dot: string; text: string; bg: string }> =
 const SeverityCell = ({ value }: { value: string | null | undefined }) => {
   if (!value) return <span className="text-muted-foreground">—</span>;
   const style = severityStyles[value as SeverityKey] ?? fallbackStyle;
+  const color = "hex" in style ? style.hex : undefined;
   return (
     <span className="inline-flex items-center gap-2">
-      <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
-      <span className={`font-medium ${style.text}`}>{value}</span>
+      <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} style={color ? { backgroundColor: color } : {}} />
+      <span className={`font-medium ${style.text}`} style={color ? { color } : {}}>{value}</span>
     </span>
   );
 };
@@ -245,7 +246,7 @@ const VulnerabilitiesTab = () => {
           setShow={setShowStatusDrop}
           setValue={setFilterStatus}
         />
-        <span className="ml-auto text-sm text-muted-foreground">{filtered.length} results</span>
+        <span className="ml-auto text-sm text-muted-foreground">{filtered.length.toLocaleString("en-US")} results</span>
       </div>
 
       {/* Info banner */}
@@ -254,7 +255,7 @@ const VulnerabilitiesTab = () => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-severity-high" />
             <span className="text-sm font-medium text-foreground">
-              {filtered.length} vulnerabilities found on {filtered.length} vulnerability IDs
+              {filtered.length.toLocaleString("en-US")} vulnerabilities found on {filtered.length.toLocaleString("en-US")} vulnerability IDs
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -299,7 +300,9 @@ const VulnerabilitiesTab = () => {
           <tbody>
             {filtered.map((v) => {
               const sev = (v.cvss_severity as SeverityKey) ?? "Info";
-              const dot = severityStyles[sev]?.dot ?? fallbackStyle.dot;
+              const sevStyle = severityStyles[sev] ?? fallbackStyle;
+              const dot = sevStyle.dot;
+              const color = "hex" in sevStyle ? sevStyle.hex : undefined;
               const cveInfo = cveMap.get(v.cve_id);
               const score = cveInfo?.score;
               const scoreStyle = severityStyles[sev] ?? fallbackStyle;
@@ -311,7 +314,7 @@ const VulnerabilitiesTab = () => {
                 >
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
+                      <span className={`w-2.5 h-2.5 rounded-full ${dot}`} style={color ? { backgroundColor: color } : {}} />
                       <span className="text-primary font-mono text-xs font-semibold">
                         {v.cve_id ?? "—"}
                       </span>
@@ -329,7 +332,7 @@ const VulnerabilitiesTab = () => {
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-foreground text-center font-medium tabular-nums">
-                    {v.vulnerability_count ?? 0}
+                    {(v.vulnerability_count ?? 0).toLocaleString("en-US")}
                   </td>
                   <td className="px-5 py-3.5">
                     <ExploitCell value={v.exploit_status} />
@@ -338,8 +341,9 @@ const VulnerabilitiesTab = () => {
                     {score !== undefined && score !== null ? (
                       <span
                         className={`inline-flex items-center justify-center min-w-[44px] px-2 py-1 rounded-md text-xs font-bold tabular-nums bg-secondary border border-border ${scoreStyle.text}`}
+                        style={color ? { color } : {}}
                       >
-                        {Number(score).toFixed(1)}
+                        {Number(score).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       </span>
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>

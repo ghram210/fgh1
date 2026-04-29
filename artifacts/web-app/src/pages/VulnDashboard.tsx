@@ -6,6 +6,29 @@ import TopBar from "@/components/TopBar";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 
+const severityColors: Record<string, string> = {
+  Critical: "hsl(0 84% 60%)",
+  High: "hsl(24 95% 53%)",
+  Medium: "hsl(45 93% 47%)",
+  Low: "hsl(142 71% 45%)",
+  Info: "hsl(215 20% 65%)",
+  None: "hsl(215 15% 75%)",
+};
+
+const statusColors: Record<string, string> = {
+  Open: "hsl(0 84% 60%)",
+  "In Progress": "hsl(35 92% 50%)",
+  Closed: "hsl(142 71% 45%)",
+  Suppressed: "hsl(215 20% 65%)",
+};
+
+const exploitColors: Record<string, string> = {
+  "Actively Used": "hsl(0 84% 60%)",
+  Available: "hsl(24 95% 53%)",
+  Unproven: "hsl(45 93% 47%)",
+  None: "hsl(215 20% 65%)",
+};
+
 const VulnDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [filterRating, setFilterRating] = useState("all");
@@ -173,41 +196,47 @@ const VulnDashboard = () => {
               )}
             </div>
 
-            <span className="ml-auto text-sm text-muted-foreground">{totalResults} results</span>
+            <span className="ml-auto text-sm text-muted-foreground">{totalResults.toLocaleString("en-US")} results</span>
           </div>
 
           {/* Rating Overview */}
           <h3 className="text-base font-semibold mb-3">Vulnerability Rating Overview</h3>
           <div className="grid grid-cols-4 gap-4 mb-8">
-            {filteredRatings.map((r) => (
-              <div key={r.id} className="bg-card border border-border rounded-xl p-4">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium" style={{ color: r.color }}>{r.label}</span>
-                  <span className="text-xs text-muted-foreground">{r.percentage}%</span>
+            {filteredRatings.map((r) => {
+              const color = severityColors[r.label] || r.color;
+              return (
+                <div key={r.id} className="bg-card border border-border rounded-xl p-4">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-medium" style={{ color }}>{r.label}</span>
+                    <span className="text-xs text-muted-foreground">{r.percentage.toLocaleString("en-US")}%</span>
+                  </div>
+                  <p className="text-3xl font-bold mb-3" style={{ color }}>{r.value.toLocaleString("en-US")}</p>
+                  <div className="h-1 rounded-full bg-muted">
+                    <div className="h-1 rounded-full" style={{ width: `${r.percentage}%`, backgroundColor: color }} />
+                  </div>
                 </div>
-                <p className="text-3xl font-bold mb-3" style={{ color: r.color }}>{r.value}</p>
-                <div className="h-1 rounded-full bg-muted">
-                  <div className="h-1 rounded-full" style={{ width: `${r.percentage}%`, backgroundColor: r.color }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Status Overview */}
           <h3 className="text-base font-semibold mb-3">Vulnerability Status Overview</h3>
           <div className="grid grid-cols-4 gap-4 mb-8">
-            {filteredStatuses.map((s) => (
-              <div key={s.id} className="bg-card border border-border rounded-xl p-4">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium" style={{ color: s.color }}>{s.label}</span>
-                  <span className="text-xs text-muted-foreground">{s.percentage}%</span>
+            {filteredStatuses.map((s) => {
+              const color = statusColors[s.label] || s.color;
+              return (
+                <div key={s.id} className="bg-card border border-border rounded-xl p-4">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-medium" style={{ color }}>{s.label}</span>
+                    <span className="text-xs text-muted-foreground">{s.percentage.toLocaleString("en-US")}%</span>
+                  </div>
+                  <p className="text-3xl font-bold mb-3" style={{ color }}>{s.value.toLocaleString("en-US")}</p>
+                  <div className="h-1 rounded-full bg-muted">
+                    <div className="h-1 rounded-full" style={{ width: `${Math.max(s.percentage, 2)}%`, backgroundColor: color }} />
+                  </div>
                 </div>
-                <p className="text-3xl font-bold mb-3" style={{ color: s.color }}>{s.value}</p>
-                <div className="h-1 rounded-full bg-muted">
-                  <div className="h-1 rounded-full" style={{ width: `${Math.max(s.percentage, 2)}%`, backgroundColor: s.color }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Charts Row */}
@@ -228,13 +257,18 @@ const VulnDashboard = () => {
               <div className="flex flex-col items-center">
                 <GaugeChart value={totalRisk} />
                 <div className="flex flex-wrap gap-4 mt-4 justify-center">
-                  {(riskScores || []).map((r) => (
-                    <div key={r.id} className="flex items-center gap-1.5 text-xs">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />
-                      <span className="text-muted-foreground">{r.label}</span>
-                      <span className="font-medium" style={{ color: r.color }}>{r.value}</span>
-                    </div>
-                  ))}
+                  {(riskScores || []).map((r) => {
+                    const color = r.label === "Exploitability" ? "hsl(0 84% 60%)" :
+                                  r.label === "Asset Criticality" ? "hsl(270 70% 60%)" :
+                                  r.label === "Exposure" ? "hsl(30 90% 55%)" : r.color;
+                    return (
+                      <div key={r.id} className="flex items-center gap-1.5 text-xs">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="text-muted-foreground">{r.label}</span>
+                        <span className="font-medium" style={{ color }}>{r.value.toLocaleString("en-US")}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -242,14 +276,14 @@ const VulnDashboard = () => {
 
           {/* Bar Charts Row */}
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <BarSection title="By Status" data={byStatus || []} />
-            <BarSection title="By Exploit Status" data={byExploit || []} />
+            <BarSection title="By Status" data={byStatus || []} colorMap={statusColors} />
+            <BarSection title="By Exploit Status" data={byExploit || []} colorMap={exploitColors} />
           </div>
 
           {/* Remediation Compliance */}
           <div className="grid grid-cols-2 gap-4">
-            <RemediationTable title="Remediation Time Frame Compliance (Open Vulnerabilities)" data={remOpen || []} />
-            <RemediationTable title="Remediation Time Frame Compliance (Closed Vulnerabilities)" data={remClosed || []} />
+            <RemediationTable title="Remediation Time Frame Compliance (Open Vulnerabilities)" data={remOpen || []} colorMap={severityColors} />
+            <RemediationTable title="Remediation Time Frame Compliance (Closed Vulnerabilities)" data={remClosed || []} colorMap={severityColors} />
           </div>
         </main>
       </div>
@@ -266,6 +300,8 @@ const GaugeChart = ({ value }: { value: number }) => {
 
   const degToRad = (d: number) => (d * Math.PI) / 180;
   const valToAngle = (v: number) => 180 - (v / 100) * 180;
+
+  const formatValue = (v: number) => v.toLocaleString("en-US");
 
   // Create thick arc segment using two arcs (outer + inner) forming a filled shape
   const arcSegment = (startVal: number, endVal: number) => {
@@ -324,7 +360,7 @@ const GaugeChart = ({ value }: { value: number }) => {
         const ty = cy - labelR * Math.sin(a);
         return (
           <text key={v} x={tx} y={ty} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize={12} fontWeight={500}>
-            {v}
+            {formatValue(v)}
           </text>
         );
       })}
@@ -335,35 +371,38 @@ const GaugeChart = ({ value }: { value: number }) => {
       <circle cx={cx} cy={cy} r={5} fill="white" />
       {/* Value below gauge */}
       <text x={cx} y={cy + 50} textAnchor="middle" dominantBaseline="central" fill="white" fontSize={32} fontWeight="bold">
-        {value}
+        {formatValue(value)}
       </text>
     </svg>
   );
 };
 
 // Bar Section
-const BarSection = ({ title, data }: { title: string; data: Array<{ id: string; label: string; value: number; color: string }> }) => {
+const BarSection = ({ title, data, colorMap }: { title: string; data: Array<{ id: string; label: string; value: number; color: string }>; colorMap?: Record<string, string> }) => {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
     <div className="bg-card border border-border rounded-xl p-5">
       <h3 className="text-sm font-semibold mb-4">{title}</h3>
       <div className="space-y-3">
-        {data.map((d) => (
-          <div key={d.id} className="flex items-center gap-3">
-            <span className="text-sm w-28 shrink-0" style={{ color: d.color }}>{d.label}</span>
-            <div className="flex-1 h-2.5 bg-muted rounded-full">
-              <div className="h-2.5 rounded-full" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: d.color }} />
+        {data.map((d) => {
+          const color = colorMap?.[d.label] || d.color;
+          return (
+            <div key={d.id} className="flex items-center gap-3">
+              <span className="text-sm w-28 shrink-0" style={{ color }}>{d.label}</span>
+              <div className="flex-1 h-2.5 bg-muted rounded-full">
+                <div className="h-2.5 rounded-full" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }} />
+              </div>
+              <span className="text-sm font-medium w-8 text-right">{d.value.toLocaleString("en-US")}</span>
             </div>
-            <span className="text-sm font-medium w-8 text-right">{d.value}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 };
 
 // Remediation Table
-const RemediationTable = ({ title, data }: { title: string; data: Array<{ id: string; rating: string; color: string; time_frame: string; in_compliance: number; not_in_compliance: number }> }) => {
+const RemediationTable = ({ title, data, colorMap }: { title: string; data: Array<{ id: string; rating: string; color: string; time_frame: string; in_compliance: number; not_in_compliance: number }>; colorMap?: Record<string, string> }) => {
   return (
     <div className="bg-card border border-border rounded-xl p-5">
       <h3 className="text-sm font-semibold mb-4">{title}</h3>
@@ -377,28 +416,31 @@ const RemediationTable = ({ title, data }: { title: string; data: Array<{ id: st
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.id} className="border-t border-border">
-              <td className="py-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                <span style={{ color: row.color }}>{row.rating}</span>
-              </td>
-              <td className="py-3 text-muted-foreground">{row.time_frame}</td>
-              <td className="py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-20 h-2 bg-muted rounded-full">
-                    <div className="h-2 rounded-full bg-green-500" style={{ width: `${row.in_compliance}%` }} />
+          {data.map((row) => {
+            const color = colorMap?.[row.rating] || row.color;
+            return (
+              <tr key={row.id} className="border-t border-border">
+                <td className="py-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                  <span style={{ color }}>{row.rating}</span>
+                </td>
+                <td className="py-3 text-muted-foreground">{row.time_frame}</td>
+                <td className="py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-muted rounded-full">
+                      <div className="h-2 rounded-full bg-green-500" style={{ width: `${row.in_compliance}%` }} />
+                    </div>
+                    <span className="text-green-400 text-xs">{row.in_compliance.toLocaleString("en-US")}%</span>
                   </div>
-                  <span className="text-green-400 text-xs">{row.in_compliance}%</span>
-                </div>
-              </td>
-              <td className="py-3">
-                <span className={`text-xs ${row.not_in_compliance > 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                  {row.not_in_compliance}%
-                </span>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="py-3">
+                  <span className={`text-xs ${row.not_in_compliance > 0 ? "text-red-400" : "text-muted-foreground"}`}>
+                    {row.not_in_compliance.toLocaleString("en-US")}%
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
