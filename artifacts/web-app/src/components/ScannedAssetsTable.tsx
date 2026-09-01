@@ -48,7 +48,7 @@ const formatDate = (raw: unknown): string => {
   if (!raw) return "—";
   const d = new Date(String(raw));
   if (Number.isNaN(d.getTime())) return String(raw);
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "2-digit",
@@ -84,7 +84,7 @@ const ScannedAssetsTable = () => {
           </h3>
           {!isLoading && (
             <span className="text-[11px] text-muted-foreground ml-1">
-              ({assets.length})
+              ({assets.length.toLocaleString("en-US")})
             </span>
           )}
         </div>

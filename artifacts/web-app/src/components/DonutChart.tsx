@@ -28,7 +28,7 @@ const formatValue = (n: number) =>
     ? `${(n / 1_000_000).toFixed(1)}M`
     : n >= 1_000
     ? `${(n / 1_000).toFixed(1)}k`
-    : n.toLocaleString();
+    : n.toLocaleString("en-US");
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -77,14 +77,55 @@ const CustomTooltip = ({ active, payload, total }: any) => {
   );
 };
 
+const colorOverrides: Record<string, string> = {
+  // Severity / Ratings
+  Critical: "hsl(0 84% 60%)",
+  High: "hsl(24 95% 53%)",
+  Medium: "hsl(45 93% 47%)",
+  Low: "hsl(142 71% 45%)",
+  Info: "hsl(215 20% 65%)",
+
+  // Exploitability
+  Weaponized: "hsl(0 84% 60%)",
+  "Public PoC": "hsl(24 95% 53%)",
+  "Known CVE": "hsl(45 93% 47%)",
+  Theoretical: "hsl(215 20% 65%)",
+
+  // Findings type
+  Vuln: "hsl(0 84% 60%)",
+  Misconf: "hsl(275 70% 60%)",
+
+  // Attack Vector
+  Network: "hsl(0 84% 60%)",
+  Adjacent: "hsl(24 95% 53%)",
+  Local: "hsl(45 93% 47%)",
+  Physical: "hsl(215 20% 65%)",
+
+  // Exploit Types
+  Remote: "hsl(0 84% 60%)",
+  "Web App": "hsl(195 85% 50%)",
+  "Local Privilege": "hsl(24 95% 53%)",
+  "Denial of Service": "hsl(45 93% 47%)",
+  Shellcode: "hsl(275 70% 60%)",
+};
+
 const DonutChart = ({
   title,
   subtitle,
-  data,
+  data: rawData,
   centerLabel = "Total",
   loading,
   emptyHint = "No data yet — run a scan to populate this chart.",
 }: DonutChartProps) => {
+  const data = useMemo(
+    () =>
+      rawData.map((d) => ({
+        ...d,
+        color: colorOverrides[d.name] || d.color,
+      })),
+    [rawData],
+  );
+
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
   const reactId = useId();
   const safeId = reactId.replace(/[^a-zA-Z0-9_-]/g, "");

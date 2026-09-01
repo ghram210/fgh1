@@ -23,7 +23,7 @@ const Vulnerabilities = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Vulnerability Management</h1>
-              <p className="text-sm text-primary mt-1">26 vulnerabilities found</p>
+              <p className="text-sm text-primary mt-1">Vulnerabilities found on your infrastructure</p>
             </div>
             <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
               <Download className="w-4 h-4" />
